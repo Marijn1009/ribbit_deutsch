@@ -20,8 +20,8 @@ Opening `app/index.html` directly from disk does not work because the puzzle pac
 - **Heute** = today's puzzle for the level (one per day, 400-day cycle); ‹ › browse, **Zufällig** picks any.
 - Input: drag across pads, tap pads one by one (tap the last pad again to submit), or type on a
   keyboard (Enter submits; `ae/oe/ue/ss` work for ä/ö/ü/ß).
-- **Hinweis** unlocks after 3 minutes of play without a found word, reveals translation, length and
-  starting pad of one remaining word, and locks again for 3 minutes.
+- **Hinweis** unlocks after 1 minute of play without a found word, reveals translation, length and
+  starting pad of one remaining word, and locks again for 1 minute.
 - Progress, streak and level are stored in the browser's localStorage.
 - The app is a PWA: after the first load it works offline and can be installed.
 
