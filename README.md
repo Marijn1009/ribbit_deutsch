@@ -8,40 +8,33 @@ English translation, article and an example sentence.
 
 Unofficial, non-commercial, not affiliated with Puzzmo or Hearst. See `NOTICE.md` and `docs/LEGAL.md`.
 
-## Play locally
+## Play
+
+**https://marijn1009.github.io/ribbit_deutsch/**
+
+Works in any browser. On a phone, open the link in Chrome and choose *Add to Home screen* to install it
+as an app; it works offline after the first load.
+
+- **Levels** A2 / B1 / B2 = the highest CEFR level of the words that can appear in a puzzle.
+- **Heute** = today's puzzle for the level (one per day); ‹ › browse, **Zufällig** picks any.
+- Input: drag across pads, tap pads one by one (tap the last pad again to submit), or type on a
+  keyboard (Enter submits; `ae/oe/ue/ss` work for ä/ö/ü/ß).
+- **Hinweis** unlocks after 1 minute of play without a found word and locks again after use.
+- Progress, streak and level are stored in the browser.
+
+## Development
 
 ```bash
 npm start            # serves ./app on http://localhost:8080  (no dependencies)
+npm test             # engine unit tests + consistency of shipped puzzle packs
 ```
-Or serve the `app/` folder with any static server (`python3 -m http.server -d app 8080`).
-Opening `app/index.html` directly from disk does not work because the puzzle packs are loaded with `fetch`.
-
-- **Levels** A2 / B1 / B2 = the highest CEFR level of the words that can appear in a puzzle.
-- **Heute** = today's puzzle for the level (one per day, 400-day cycle); ‹ › browse, **Zufällig** picks any.
-- Input: drag across pads, tap pads one by one (tap the last pad again to submit), or type on a
-  keyboard (Enter submits; `ae/oe/ue/ss` work for ä/ö/ü/ß).
-- **Hinweis** unlocks after 3 minutes of play without a found word, reveals translation, length and
-  starting pad of one remaining word, and locks again for 3 minutes.
-- Progress, streak and level are stored in the browser's localStorage.
-- The app is a PWA: after the first load it works offline and can be installed.
-
-## On a phone (Pixel 10)
-
-1. Host the `app/` folder somewhere reachable over HTTPS. The included workflow
-   `.github/workflows/pages.yml` publishes it to GitHub Pages on every push to `main`; enable it once
-   under *Settings → Pages → Source: GitHub Actions*. The app then lives at
-   `https://<user>.github.io/<repo>/`. Alternatively run `npm start` on a PC and open
-   `http://<pc-ip>:8080` on the phone in the same Wi-Fi (playing works over plain HTTP, installing needs HTTPS).
-2. Open the URL in Chrome on the phone → menu → **Add to Home screen** / **Install app**.
-3. Later options: wrap the PWA as an Android app with [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap)
-   (Trusted Web Activity) or Capacitor. No changes to the game are needed for either.
+Pushes to `main` deploy `app/` to GitHub Pages via `.github/workflows/pages.yml`.
 
 ## Puzzle generation
 
 ```bash
 python3 scripts/generate_puzzles.py --count 400        # regenerates app/puzzles/{a2,b1,b2}.json
 python3 scripts/validate_puzzles.py                    # re-derives every solution set and checks it
-npm test                                               # engine unit tests + consistency of shipped packs
 ```
 The generator downloads the word list on first run into `data/` (git-ignored). Algorithm and
 data format are described in `docs/DESIGN.md`.

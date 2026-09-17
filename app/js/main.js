@@ -23,6 +23,7 @@ const state = {
   elapsed: 0,          // ms accumulated before resumeAt
   resumeAt: null,      // timestamp while the clock runs
   lastEventElapsed: 0, // play time (ms) at the last found word or hint – the hint button unlocks HINT_DELAY_MS later
+  lastMistake: null,   // status of the previous rejected word; the explanation only shows on a repeat
   pads: new Map(),     // cellKey -> <g>
   edgeEls: new Map(),  // edgeKey -> <line>
   trail: null,
@@ -96,6 +97,7 @@ async function showPuzzle(index) {
   state.lastEventElapsed = saved?.lastEventElapsed || 0;
   state.resumeAt = null;
   state.selection = []; state.typed = '';
+  state.lastMistake = null;
   const isToday = state.index === todayIndex(pack);
   el.puzzleLabel.textContent = `${isToday ? 'Heute · ' : ''}${state.level} #${state.index + 1}`;
   document.querySelectorAll('.levels button').forEach(b => b.classList.toggle('active', b.dataset.level === state.level));
@@ -130,12 +132,16 @@ function buildBoard() {
       g.setAttribute('class', 'pad');
       g.dataset.r = r; g.dataset.c = c;
       const [x, y] = center([r, c]);
+      g.style.setProperty('--k', r * SIZE + c);
+      const ripple = document.createElementNS(ns, 'circle');
+      ripple.setAttribute('cx', x); ripple.setAttribute('cy', y); ripple.setAttribute('r', R);
+      ripple.setAttribute('class', 'ripple');
       const circle = document.createElementNS(ns, 'circle');
       circle.setAttribute('cx', x); circle.setAttribute('cy', y); circle.setAttribute('r', R);
       const text = document.createElementNS(ns, 'text');
       text.setAttribute('x', x); text.setAttribute('y', y);
       text.textContent = state.game.grid[r][c];
-      g.append(circle, text);
+      g.append(ripple, circle, text);
       svg.appendChild(g);
       state.pads.set(cellKey(r, c), g);
     }
@@ -153,7 +159,7 @@ function renderBoard(clearedNow = []) {
     if (frog && !pad.classList.contains('frog')) {
       pad.querySelector('text').textContent = '🐸';
       pad.classList.add('frog');
-      if (clearedNow.includes(key)) { pad.classList.add('pop'); setTimeout(() => pad.classList.remove('pop'), 700); }
+      if (clearedNow.includes(key)) { pad.classList.add('pop'); setTimeout(() => pad.classList.remove('pop'), 1200); }
     }
     pad.classList.toggle('sel', selKeys.has(key));
     pad.classList.toggle('dim', g.gaveUp && !frog);
@@ -235,7 +241,7 @@ function finish(clearedNow) {
   saveProgress();
   if (state.game.isComplete) updateStreak();
   renderAll(clearedNow);
-  setTimeout(showResults, state.game.isComplete ? 900 : 200);
+  setTimeout(showResults, state.game.isComplete ? 1600 : 200);
 }
 
 // ---------- input ----------
@@ -253,21 +259,32 @@ function submitCurrent() {
   const res = g.submit(word);
   if (res.status === 'ok') {
     renderCurrent('ok');
-    for (const [r, c] of state.selection) {
+    // Letters pulse one after another along the traced path, then lines fade and frogs pop.
+    state.selection.forEach(([r, c], i) => {
       const pad = state.pads.get(cellKey(r, c));
-      pad.classList.add('flash'); setTimeout(() => pad.classList.remove('flash'), 600);
-    }
+      pad.style.setProperty('--i', i);
+      pad.classList.add('flash'); setTimeout(() => pad.classList.remove('flash'), 900 + i * 60);
+    });
+    const settle = 250 + state.selection.length * 60;
     setMessage(`${res.star ? '⭐ ' : '✓ '}${displayLemma(res.meta)} – ${res.meta.en}`, 4000);
-    state.selection = []; state.typed = '';
+    state.selection = []; state.typed = ''; state.lastMistake = null;
     state.lastEventElapsed = elapsedNow();
     saveProgress();
-    if (g.isComplete) { finish(res.cleared); return; }
-    renderAll(res.cleared);
+    renderCurrent(); renderProgress(); renderFound();
+    state.trail.setAttribute('points', '');
+    for (const pad of state.pads.values()) pad.classList.remove('sel');
+    setTimeout(() => { if (g.isComplete) finish(res.cleared); else renderBoard(res.cleared); }, settle);
     return;
   }
   renderCurrent('bad');
+  for (const [r, c] of state.selection) {
+    const pad = state.pads.get(cellKey(r, c));
+    pad.classList.add('bad'); setTimeout(() => pad.classList.remove('bad'), 450);
+  }
+  // Keep it quiet: the red word is enough. Explain only when the same kind of mistake repeats.
   const msgs = { short: `Mindestens ${MIN_LEN} Buchstaben`, dup: 'Schon gefunden', notfound: 'Nicht in diesem Rätsel' };
-  setMessage(msgs[res.status] || '');
+  setMessage(state.lastMistake === res.status ? msgs[res.status] || '' : '');
+  state.lastMistake = res.status;
   clearSelectionSoon();
 }
 

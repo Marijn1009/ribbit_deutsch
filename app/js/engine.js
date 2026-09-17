@@ -3,7 +3,7 @@
 export const SIZE = 4;
 export const MIN_LEN = 4;
 /** Play time without a found word (or hint) before the hint button unlocks. */
-export const HINT_DELAY_MS = 3 * 60 * 1000;
+export const HINT_DELAY_MS = 60 * 1000;
 const DIRS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 
 export const cellKey = (r, c) => `${r},${c}`;

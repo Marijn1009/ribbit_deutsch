@@ -57,30 +57,43 @@ main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap
 
 .entry { min-height: 62px; text-align: center; }
 .current-word { font-size: 30px; font-weight: 700; letter-spacing: .12em; min-height: 40px; transition: color .2s; }
-.current-word.ok { color: var(--ok); }
-.current-word.bad { color: var(--danger); animation: shake .35s; }
-.message { font-size: 14px; color: var(--muted); min-height: 18px; }
-@keyframes shake { 0%,100% { transform: translateX(0);} 25% { transform: translateX(-6px);} 75% { transform: translateX(6px);} }
+.current-word.ok { color: var(--ok); animation: wordpop .45s cubic-bezier(.34,1.56,.64,1); }
+.current-word.bad { color: var(--danger); animation: shake .4s cubic-bezier(.36,.07,.19,.97); }
+.message { font-size: 14px; color: var(--muted); min-height: 18px; transition: opacity .3s; }
+@keyframes shake { 10%,90% { transform: translateX(-2px);} 20%,80% { transform: translateX(4px);} 30%,50%,70% { transform: translateX(-7px);} 40%,60% { transform: translateX(7px);} }
+@keyframes wordpop { 0% { transform: scale(.9);} 100% { transform: scale(1);} }
 
 .board { width: 100%; max-width: 420px; aspect-ratio: 1; align-self: center; touch-action: none; user-select: none; -webkit-user-select: none; }
-.board .edge { stroke: var(--path); stroke-width: 7; stroke-linecap: round; transition: opacity .6s; }
-.board .edge.gone { opacity: 0; }
+.board .edge { stroke: var(--path); stroke-width: 7; stroke-linecap: round; transition: opacity .55s ease-out, stroke-width .55s ease-out; }
+.board .edge.gone { opacity: 0; stroke-width: 0; }
 .board .trail { stroke: var(--sel-trail); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: .75; pointer-events: none; }
-.board .pad circle { fill: var(--pad); stroke: var(--pad-border); stroke-width: 3; transition: fill .2s, stroke .2s; }
-.board .pad text { font-size: 38px; font-weight: 700; fill: var(--pad-text); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-.board .pad.sel circle { fill: var(--sel); stroke: var(--sel-trail); }
-.board .pad.flash circle { animation: flash .5s; }
-@keyframes flash { 0% { fill: var(--ok);} 100% { fill: var(--pad);} }
-.board .pad.dim { opacity: .35; }
+.board .pad circle, .board .pad text { transform-box: fill-box; transform-origin: center; }
+.board .pad circle { fill: var(--pad); stroke: var(--pad-border); stroke-width: 3; transition: fill .2s, stroke .2s, transform .18s cubic-bezier(.34,1.56,.64,1); }
+.board .pad .ripple { fill: none; stroke: var(--sel-trail); stroke-width: 3; opacity: 0; pointer-events: none; }
+.board .pad text { font-size: 38px; font-weight: 700; fill: var(--pad-text); text-anchor: middle; dominant-baseline: central; pointer-events: none; transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
+.board .pad.sel circle { fill: var(--sel); stroke: var(--sel-trail); transform: scale(1.1); }
+.board .pad.sel text { transform: scale(1.1); }
+.board .pad.bad circle { fill: #f3c1b8; stroke: var(--danger); }
+.board .pad.flash circle { animation: flash .7s cubic-bezier(.34,1.56,.64,1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.board .pad.flash .ripple { animation: ripple .8s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes flash { 0% { fill: var(--sel); transform: scale(1.1);} 35% { fill: var(--ok); transform: scale(1.22);} 100% { fill: var(--pad); transform: scale(1);} }
+@keyframes ripple { 0% { opacity: .7; transform: scale(1);} 100% { opacity: 0; transform: scale(1.9);} }
+.board .pad.dim { opacity: .35; transition: opacity .6s; }
 .board .pad.hinted circle { animation: hintpulse 1s 4; }
 @keyframes hintpulse { 0%,100% { fill: var(--pad); stroke-width: 3; } 50% { fill: var(--sel); stroke: var(--sel-trail); stroke-width: 7; } }
-.board .pad.frog circle { fill: var(--water); stroke: var(--water); }
+.board .pad.frog circle { fill: var(--water); stroke: var(--water); transition: fill .4s, stroke .4s; }
 .board .pad.frog text { font-size: 44px; }
-.board .pad.frog.pop text { animation: pop .6s; }
-.board.done .pad.frog text { animation: bounce 1.2s infinite; }
-@keyframes pop { 0% { transform: scale(0); } 60% { transform: scale(1.25);} 100% { transform: scale(1);} }
-@keyframes bounce { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-9px);} }
-.board .pad text { transform-box: fill-box; transform-origin: center; }
+.board .pad.frog.pop text { animation: pop .8s cubic-bezier(.34,1.56,.64,1) both; animation-delay: .12s; }
+.board .pad.frog.pop .ripple { stroke: var(--path); animation: ripple 1s ease-out both; animation-delay: .1s; }
+.board.done .pad.frog text { animation: hop 1.5s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k, 0) * 70ms); }
+@keyframes pop { 0% { transform: scale(0) rotate(-20deg); } 55% { transform: scale(1.3) rotate(6deg);} 75% { transform: scale(.95);} 100% { transform: scale(1) rotate(0);} }
+@keyframes hop { 0%,100% { transform: translateY(0) scale(1,1);} 15% { transform: translateY(2px) scale(1.08,.92);} 50% { transform: translateY(-12px) scale(.96,1.06);} 85% { transform: translateY(0) scale(1.04,.96);} }
+
+@media (prefers-reduced-motion: reduce) {
+  .board .pad circle, .board .pad text, .board .edge { transition: none; }
+  .board .pad.flash circle, .board .pad.flash .ripple, .board .pad.frog.pop text, .board .pad.frog.pop .ripple,
+  .board.done .pad.frog text, .current-word.ok, .current-word.bad { animation: none; }
+}
 
 .progress { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); padding: 0 4px; }
 .progress b { color: var(--text); }
