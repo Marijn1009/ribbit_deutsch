@@ -1,4 +1,4 @@
-import { Game, SIZE, MIN_LEN, cellKey, edgeKey, dailyIndex, formatTime, shareText, displayLemma, normalizeTyped } from './engine.js';
+import { Game, SIZE, MIN_LEN, HINT_DELAY_MS, cellKey, edgeKey, dailyIndex, formatTime, shareText, displayLemma, normalizeTyped } from './engine.js';
 import { store, KEYS, localDateStr } from './store.js';
 
 const LEVELS = ['A2', 'B1', 'B2'];
@@ -22,6 +22,7 @@ const state = {
   typed: '',
   elapsed: 0,          // ms accumulated before resumeAt
   resumeAt: null,      // timestamp while the clock runs
+  lastEventElapsed: 0, // play time (ms) at the last found word or hint – the hint button unlocks HINT_DELAY_MS later
   pads: new Map(),     // cellKey -> <g>
   edgeEls: new Map(),  // edgeKey -> <line>
   trail: null,
@@ -43,7 +44,17 @@ function todayIndex(pack) { return dailyIndex(new Date(), pack.puzzles.length); 
 function elapsedNow() { return state.elapsed + (state.resumeAt ? Date.now() - state.resumeAt : 0); }
 function startClock() { if (!state.resumeAt && state.game && !state.game.isOver) state.resumeAt = Date.now(); }
 function stopClock() { if (state.resumeAt) { state.elapsed += Date.now() - state.resumeAt; state.resumeAt = null; } }
-setInterval(() => { if (state.game) el.timer.textContent = formatTime(elapsedNow()); }, 500);
+setInterval(() => { if (state.game) { el.timer.textContent = formatTime(elapsedNow()); renderHintButton(); } }, 500);
+
+function hintRemainingMs() { return Math.max(0, state.lastEventElapsed + HINT_DELAY_MS - elapsedNow()); }
+function renderHintButton() {
+  const btn = $('hintBtn');
+  const g = state.game;
+  if (!g || g.isOver) { btn.disabled = true; btn.textContent = 'Hinweis'; return; }
+  const left = hintRemainingMs();
+  btn.disabled = left > 0;
+  btn.textContent = left > 0 ? `Hinweis (${formatTime(left)})` : 'Hinweis 💡';
+}
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { stopClock(); saveProgress(); } else startClock();
 });
@@ -51,7 +62,9 @@ document.addEventListener('visibilitychange', () => {
 // ---------- persistence ----------
 function saveProgress() {
   if (!state.game) return;
-  store.set(KEYS.progress(state.puzzle.id), { ...state.game.toState(), elapsed: elapsedNow(), done: state.game.isOver });
+  store.set(KEYS.progress(state.puzzle.id), {
+    ...state.game.toState(), elapsed: elapsedNow(), lastEventElapsed: state.lastEventElapsed, done: state.game.isOver,
+  });
 }
 
 function updateStreak() {
@@ -80,6 +93,7 @@ async function showPuzzle(index) {
   const saved = store.get(KEYS.progress(state.puzzle.id));
   state.game.restore(saved);
   state.elapsed = saved?.elapsed || 0;
+  state.lastEventElapsed = saved?.lastEventElapsed || 0;
   state.resumeAt = null;
   state.selection = []; state.typed = '';
   const isToday = state.index === todayIndex(pack);
@@ -160,6 +174,7 @@ function renderProgress() {
   el.wordsFound.textContent = g.foundCount; el.wordsTotal.textContent = g.totalWords;
   el.stars.textContent = g.starsFound; el.starsTotal.textContent = g.starWords.length;
   $('giveUpBtn').disabled = g.isOver;
+  renderHintButton();
 }
 
 function wordItem(meta, { missed = false } = {}) {
@@ -195,7 +210,8 @@ function showResults() {
   const g = state.game;
   const label = `${state.level} #${state.index + 1}`;
   el.resultsTitle.textContent = g.isComplete ? 'Alle Frösche befreit! 🐸' : 'Aufgegeben 🐸💤';
-  el.resultsStats.textContent = `🐸 ${g.frogsRevealed()}/16 · Wörter ${g.foundCount}/${g.totalWords} · ⭐ ${g.starsFound}/${g.starWords.length} · ⏱ ${formatTime(elapsedNow())}`;
+  el.resultsStats.textContent = `🐸 ${g.frogsRevealed()}/16 · Wörter ${g.foundCount}/${g.totalWords} · ⭐ ${g.starsFound}/${g.starWords.length}` +
+    ` · ⏱ ${formatTime(elapsedNow())}${g.hintsUsed ? ` · 💡 ${g.hintsUsed}` : ''}`;
   el.resultsWords.innerHTML = '';
   for (const meta of state.puzzle.words) {
     const li = document.createElement('li');
@@ -243,6 +259,7 @@ function submitCurrent() {
     }
     setMessage(`${res.star ? '⭐ ' : '✓ '}${displayLemma(res.meta)} – ${res.meta.en}`, 4000);
     state.selection = []; state.typed = '';
+    state.lastEventElapsed = elapsedNow();
     saveProgress();
     if (g.isComplete) { finish(res.cleared); return; }
     renderAll(res.cleared);
@@ -350,6 +367,20 @@ $('giveUpBtn').addEventListener('click', () => {
   state.game.giveUp();
   clearSelection();
   finish([]);
+});
+$('hintBtn').addEventListener('click', () => {
+  const g = state.game;
+  if (!g || g.isOver || hintRemainingMs() > 0) return;
+  const h = g.hint();
+  if (!h) return;
+  state.lastEventElapsed = elapsedNow();
+  clearSelection();
+  const kind = h.meta.pos === 'noun' ? 'Nomen' : h.meta.pos === 'verb' ? 'Verb' : h.meta.pos === 'adjective' ? 'Adjektiv' : h.meta.pos;
+  setMessage(`💡 ${h.length} Buchstaben, ${kind}: „${h.meta.en}“ – beginnt beim markierten Feld`, 10000);
+  const pad = state.pads.get(cellKey(h.start[0], h.start[1]));
+  pad.classList.add('hinted'); setTimeout(() => pad.classList.remove('hinted'), 4000);
+  saveProgress();
+  renderHintButton();
 });
 $('nextPuzzleBtn').addEventListener('click', () => { el.results.close(); randomPuzzle(); });
 $('closeResultsBtn').addEventListener('click', () => el.results.close());

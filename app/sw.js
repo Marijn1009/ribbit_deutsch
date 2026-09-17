@@ -1,5 +1,5 @@
 // Minimal offline cache: app shell + puzzle packs. Bump VERSION when files change.
-const VERSION = 'quak-v1';
+const VERSION = 'quak-v2';
 const SHELL = ['./', 'index.html', 'style.css', 'js/main.js', 'js/engine.js', 'js/store.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'puzzles/a2.json', 'puzzles/b1.json', 'puzzles/b2.json'];

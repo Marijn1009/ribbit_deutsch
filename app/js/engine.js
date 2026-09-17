@@ -2,6 +2,8 @@
 
 export const SIZE = 4;
 export const MIN_LEN = 4;
+/** Play time without a found word (or hint) before the hint button unlocks. */
+export const HINT_DELAY_MS = 3 * 60 * 1000;
 const DIRS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 
 export const cellKey = (r, c) => `${r},${c}`;
@@ -91,6 +93,8 @@ export class Game {
     for (const w of this.words.keys()) this.paths.set(w, findPaths(this.grid, this.edges, w));
     this.found = new Set();
     this.gaveUp = false;
+    this.hintsUsed = 0;
+    this.hinted = new Set();
     this.maxLen = Math.max(...Array.from(this.words.keys()).map(w => w.length));
     this._recompute();
   }
@@ -175,13 +179,32 @@ export class Game {
     return Array.from(this.words.values()).filter(m => !this.found.has(m.w));
   }
 
+  /**
+   * Give a hint for one unfound word: its metadata (translation, length) and the pad it starts on.
+   * Prefers short words that have not been hinted yet. Returns null when nothing is left.
+   */
+  hint() {
+    if (this.isOver) return null;
+    const remaining = this.remainingWords().sort((a, b) => a.w.length - b.w.length || a.w.localeCompare(b.w));
+    if (!remaining.length) return null;
+    const meta = remaining.find(m => !this.hinted.has(m.w)) || remaining[0];
+    this.hinted.add(meta.w);
+    this.hintsUsed += 1;
+    const path = this.paths.get(meta.w)[0];
+    return { meta, start: path[0], length: meta.w.length };
+  }
+
   /** Serialise progress. */
-  toState() { return { found: Array.from(this.found), gaveUp: this.gaveUp }; }
+  toState() {
+    return { found: Array.from(this.found), gaveUp: this.gaveUp, hintsUsed: this.hintsUsed, hinted: Array.from(this.hinted) };
+  }
 
   restore(state) {
     if (!state) return;
     for (const w of state.found || []) if (this.words.has(w)) this.found.add(w);
     this.gaveUp = !!state.gaveUp;
+    this.hintsUsed = state.hintsUsed || 0;
+    for (const w of state.hinted || []) this.hinted.add(w);
     this._recompute();
   }
 }
@@ -220,6 +243,7 @@ export function shareText(game, label, elapsedMs) {
     rows.push(row);
   }
   const head = `Quak ${label} · 🐸 ${game.frogsRevealed()}/16 · Wörter ${game.foundCount}/${game.totalWords}` +
-    ` · ⭐ ${game.starsFound}/${game.starWords.length} · ⏱ ${formatTime(elapsedMs)}`;
+    ` · ⭐ ${game.starsFound}/${game.starWords.length} · ⏱ ${formatTime(elapsedMs)}` +
+    (game.hintsUsed ? ` · 💡 ${game.hintsUsed}` : '');
   return `${head}\n${rows.join('\n')}`;
 }

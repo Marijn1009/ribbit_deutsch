@@ -72,6 +72,8 @@ main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap
 .board .pad.flash circle { animation: flash .5s; }
 @keyframes flash { 0% { fill: var(--ok);} 100% { fill: var(--pad);} }
 .board .pad.dim { opacity: .35; }
+.board .pad.hinted circle { animation: hintpulse 1s 4; }
+@keyframes hintpulse { 0%,100% { fill: var(--pad); stroke-width: 3; } 50% { fill: var(--sel); stroke: var(--sel-trail); stroke-width: 7; } }
 .board .pad.frog circle { fill: var(--water); stroke: var(--water); }
 .board .pad.frog text { font-size: 44px; }
 .board .pad.frog.pop text { animation: pop .6s; }
