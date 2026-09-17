@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Quak – Deutsche Wortsuche</title>
+  <meta name="description" content="Quak: ein tägliches deutsches Wortsuchrätsel zum Vokabellernen. Finde alle Wörter, befreie alle Frösche.">
+  <meta name="theme-color" content="#2f6b3a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Quak <span class="sub">Wortsuche</span></h1>
+    <div class="levels" role="group" aria-label="Niveau">
+      <button data-level="A2">A2</button>
+      <button data-level="B1">B1</button>
+      <button data-level="B2">B2</button>
+    </div>
+    <button id="helpBtn" class="icon-btn" aria-label="Hilfe" title="Wie spielt man?">?</button>
+  </header>
+
+  <main>
+    <div class="puzzle-bar">
+      <button id="prevBtn" class="icon-btn" aria-label="Vorheriges Rätsel">‹</button>
+      <span id="puzzleLabel" class="puzzle-label">…</span>
+      <button id="nextBtn" class="icon-btn" aria-label="Nächstes Rätsel">›</button>
+      <span id="timer" class="timer">0:00</span>
+    </div>
+
+    <div class="entry">
+      <div id="current" class="current-word" aria-live="polite">&nbsp;</div>
+      <div id="message" class="message" aria-live="polite"></div>
+    </div>
+
+    <svg id="board" class="board" viewBox="0 0 400 400" role="application" aria-label="Spielbrett"></svg>
+
+    <div class="progress">
+      <span>🐸 <b id="frogs">0</b>/16</span>
+      <span>Wörter <b id="wordsFound">0</b>/<b id="wordsTotal">0</b></span>
+      <span>⭐ <b id="stars">0</b>/<b id="starsTotal">0</b></span>
+      <span class="streak" title="Tägliche Serie">🔥 <b id="streak">0</b></span>
+    </div>
+
+    <ul id="found" class="found" aria-label="Gefundene Wörter"></ul>
+
+    <div class="actions">
+      <button id="todayBtn">Heute</button>
+      <button id="randomBtn">Zufällig</button>
+      <button id="giveUpBtn" class="danger">Aufgeben</button>
+    </div>
+    <p class="hint">Ziehe über verbundene Buchstaben, tippe sie nacheinander an oder benutze die Tastatur. Wörter haben mindestens 4 Buchstaben.</p>
+  </main>
+
+  <dialog id="results" class="dialog">
+    <h2 id="resultsTitle"></h2>
+    <p id="resultsStats"></p>
+    <ul id="resultsWords" class="result-words"></ul>
+    <div class="dialog-actions">
+      <button id="shareBtn">Teilen</button>
+      <button id="nextPuzzleBtn">Nächstes Rätsel</button>
+      <button id="closeResultsBtn">Schließen</button>
+    </div>
+  </dialog>
+
+  <dialog id="help" class="dialog">
+    <h2>So spielt man Quak</h2>
+    <ul class="rules">
+      <li>Unter jedem Buchstaben versteckt sich ein Frosch. Befreie alle 16!</li>
+      <li>Bilde Wörter, indem du von Buchstabe zu Buchstabe entlang der Linien springst. Jeder Buchstabe darf pro Wort nur einmal benutzt werden.</li>
+      <li>Wörter haben <b>mindestens 4 Buchstaben</b> und stehen in der Wortliste des Rätsels (Grundformen: Nomen im Singular, Verben im Infinitiv).</li>
+      <li>Findest du ein Wort, verschwinden Linien, die kein weiteres Wort mehr braucht. Braucht kein Wort einen Buchstaben mehr, springt sein Frosch heraus.</li>
+      <li>Das längste Wort (oder die längsten Wörter) bekommt einen ⭐.</li>
+      <li>Kein Hinweis-Knopf – wenn du feststeckst, suche zuerst kurze Wörter. Das Brett wird kleiner.</li>
+      <li>Zum Lernen: Jedes gefundene Wort zeigt seine Übersetzung. Tippe darauf für einen Beispielsatz.</li>
+    </ul>
+    <p class="small">Niveau A2/B1/B2 = höchstes CEFR-Niveau der Wörter im Rätsel. Ein Rätsel pro Tag und Niveau; mit ‹ › oder „Zufällig“ kannst du weitere spielen.</p>
+    <p class="small">Inspiriert von Ribbit (Puzzmo). Inoffizielles, nicht-kommerzielles Lernprojekt. Wortliste: vbvss199/Language-Learning-decks (MIT), Frequenzdaten via wordfreq (CC BY-SA 4.0).</p>
+    <div class="dialog-actions"><button id="closeHelpBtn">Alles klar</button></div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
