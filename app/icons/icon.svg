@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#2f6b3a"/>
+  <circle cx="256" cy="300" r="150" fill="#7fb069"/>
+  <circle cx="256" cy="300" r="120" fill="#d9f0c8"/>
+  <text x="256" y="322" font-family="system-ui, sans-serif" font-size="120" font-weight="700" text-anchor="middle" fill="#1d3b22">Q</text>
+  <circle cx="176" cy="150" r="52" fill="#7fb069"/><circle cx="336" cy="150" r="52" fill="#7fb069"/>
+  <circle cx="176" cy="150" r="30" fill="#fff"/><circle cx="336" cy="150" r="30" fill="#fff"/>
+  <circle cx="184" cy="156" r="14" fill="#1d3b22"/><circle cx="344" cy="156" r="14" fill="#1d3b22"/>
+</svg>
