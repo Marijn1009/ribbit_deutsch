@@ -56,6 +56,22 @@ test('giving up keeps the honest frog count', () => {
   assert.equal(g.remainingWords().length, 12);
 });
 
+test('hint returns a remaining word, shortest first, and persists', () => {
+  const g = new Game(sample);
+  const h = g.hint();
+  assert.equal(h.length, 4);
+  assert.ok(!g.found.has(h.meta.w));
+  assert.deepEqual(h.start, g.paths.get(h.meta.w)[0][0]);
+  const h2 = g.hint();
+  assert.notEqual(h2.meta.w, h.meta.w);
+  assert.equal(g.hintsUsed, 2);
+  const g2 = new Game(sample); g2.restore(g.toState());
+  assert.equal(g2.hintsUsed, 2);
+  assert.match(shareText(g2, 'x', 0), /💡 2/);
+  for (const w of g.words.keys()) g.submit(w);
+  assert.equal(g.hint(), null);
+});
+
 test('state round trip', () => {
   const g = new Game(sample);
   g.submit('DEMO');

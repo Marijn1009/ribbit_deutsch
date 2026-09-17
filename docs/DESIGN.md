@@ -76,7 +76,7 @@ Puzzmo code or assets were used.
 | G8 | Feedback | Messages: *Zu kurz*, *Schon gefunden*, *Nicht in diesem Rätsel*, *Keine Verbindung*. |
 | G9 | Persistence | Progress per puzzle stored in `localStorage`, so a reload continues where you were. |
 | G10 | Daily puzzle | One puzzle per calendar day per level, chosen deterministically from the puzzle pack. Streak counter. |
-| G11 | No hints | No hint button during play, same as Ribbit. |
+| G11 | Hints (deviation) | Ribbit has no hint button. Quak has one, but it only unlocks after **3 minutes of play time without a found word** (counted from puzzle start or the last found word). A hint shows translation, length, word class and pulses the starting pad of one remaining word (shortest first), then locks again for 3 minutes. Hints used are shown in the results/share text. |
 
 ### 2.2 German-learning extensions (deviations from Ribbit, all opt-in or post-game)
 | # | Feature | Behaviour |
@@ -127,7 +127,7 @@ Paths are **not** stored; the app recomputes all paths of each solution word by 
 
 ### 3.2 Runtime state
 ```
-puzzleId, startedAt, elapsedMs, foundWords[], gaveUp, finishedAt
+puzzleId, elapsedMs, lastEventElapsed, foundWords[], hintsUsed, hinted[], gaveUp, done
 ```
 stored under `quak:progress:<puzzleId>`; streak/meta under `quak:meta`.
 
@@ -177,7 +177,7 @@ the shipped solution list is exactly the set of traceable dictionary words (no m
 │  🐸 5/16   Wörter 4/12  ⭐0/1 │  progress row
 │                              │
 │  Gefunden: HAUS (house) …    │  found list, tap for details
-│  [Aufgeben]                  │
+│  [Heute] [Zufällig] [Hinweis (2:31)] [Aufgeben] │
 └──────────────────────────────┘
 ```
 
